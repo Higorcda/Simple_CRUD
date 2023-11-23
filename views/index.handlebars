@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD</title>
+
+    <link rel="stylesheet" href="/css/all.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+
+    {{#if success}}
+
+        <div class="system_message success_system_message"><p>{{success}}</p></div>
+
+    {{/if}}
+
+    {{#if failure}}
+
+        <div class="system_message failure_system_message"><p>{{failure}}</p></div>
+
+    {{/if}}
+
+    <div class="system_message failure_system_message" id="system_message__js_fetch_failure"></div>
+
+    <div class="system_message success_system_message" id="system_message__js_fetch_success"></div>
+
+    <div id="index">
+        <main id="index__main">
+
+            <div id="index__main-top">
+
+                <div id="index__main-top__new_register">
+                    <button onclick="open_new_register_modal()"><i class="fa-solid fa-user-plus"></i>Adicionar Novo Registro</button>
+                </div>
+                
+                <div id="index__main-top__search">
+                    <form action="/search" method="get">
+
+                        <input type="search" name="q" placeholder="Filtro...">
+                        <button type="submit"><i class="fa-solid fa-search"></i></button>
+
+                    </form>
+                </div>
+
+            </div>
+
+            <div id="index__main-registers">
+
+                {{#if registers}}
+                    {{#each registers}}
+
+                        <div class="index__main-registers__register">
+                            <div class="index__main-registers__register-infos">
+                                <span>ID: <font>{{this.database_identifier}}</font></span><span>Nome: <font>{{this.name}}</font></span><span>E-mail: <font>{{this.email}}</font></span><span>Idade: <font>{{this.age}}</font></span><span>Sexo: <font>{{this.sex}}</font></span>
+                            </div>
+
+                            <div class="index__main-registers__register-actions">
+                                <a href="/registers/update/{{this.database_identifier}}"><i class="fa-solid fa-pen-to-square"></i>Editar</a><button onclick="delete_register({{this.database_identifier}})"><i class="fa-solid fa-trash"></i>Deletar</button>
+                            </div>
+                        </div>
+
+                    {{/each}}
+
+                {{else}}
+
+                    <p>Nenhum registro ainda...</p>
+
+                {{/if}}
+
+                <script type="text/javascript">
+
+                    function show_js_fetch_message(box_id, message) 
+                    {
+
+                        const js_fetch_message_box = document.getElementById(box_id);
+
+                        js_fetch_message_box.style.display = 'block';
+
+                        const p_element        = document.createElement('p');
+                        p_element.textContent  =                     message;
+
+                        js_fetch_message_box.appendChild(p_element);
+
+                    }
+                
+                    function delete_register(people_identifier) 
+                    {
+                    
+                        fetch(`/registers/delete/${people_identifier}`, 
+                        {
+                            method: 'DELETE', headers: { 'Content-Type': 'application/json' }
+
+                        }).then( (response) => 
+                        {
+
+                            if (!response.ok) 
+                            { 
+
+                                show_js_fetch_message('system_message__js_fetch_failure', 'A requisição HTTP responsável por deletar os dados desejados falhou');
+
+                                return;
+
+                            }
+
+                            return response.json();
+
+                        }).then( (data) => 
+                        {
+                        
+                            if (data.status == false && data.error != null) { show_js_fetch_message('system_message__js_fetch_failure', data.error); return; }
+
+                            show_js_fetch_message('system_message__js_fetch_success', 'Dados deletados com sucesso');
+
+                            location.reload();
+                        
+                        }).catch( (error) => 
+                        {
+
+                            show_js_fetch_message('system_message__js_fetch_failure', error); return;
+
+                        });
+                    
+                    }
+                
+                </script>
+
+            </div>
+
+        </main>
+    </div>
+
+    <div class="register_modal_main_class register_modal" id="new_register_modal">
+        <div class="register_modal__center">
+
+            <div class="register_modal__center-top">
+                <span>Adicionar Novo Registro</span><button><i class="register_modal__center-top__close_modal_button fa-solid fa-xmark"></i></button>
+            </div>
+
+            <main class="register_modal__center-main">
+                <form action="/registers/create" method="post">
+
+                    {{#if errors}}
+                        {{#each errors}} 
+
+                            <div class="register_modal__center-main__form-failure">
+                                <div class="register_modal__center-main__form-failure__center"><p>{{this}}</p></div>
+                            </div>
+
+                        {{/each}}
+                    {{/if}}
+
+                    <div class="register_modal__center-main__form-element">
+                        <label for="new_register_modal_name_input_field_id"><span>*</span> <i class="fa-solid fa-user"></i>Nome</label>
+                        <input type="text" name="name" id="new_register_modal_name_input_field_id" placeholder="Nome">
+                    </div>
+
+                    <div class="register_modal__center-main__form-element">
+                        <label for="new_register_modal_email_input_field_id"><span>*</span> <i class="fa-solid fa-envelope"></i>E-mail</label>
+                        <input type="email" name="email" id="new_register_modal_email_input_field_id" placeholder="E-mail">
+                    </div>
+
+                    <div class="register_modal__center-main__form-element__age register_modal__center-main__form-element">
+                        <label for="new_register_modal_age_input_field_id"><span>*</span> <i class="fa-solid fa-1"></i>Idade</label>
+                        <input type="number" name="age" id="new_register_modal_age_input_field_id" placeholder="Idade" min="1" max="120">
+                    </div>
+
+                    <div class="register_modal__center-main__form-element">
+                        <label for="new_register_modal_sex_select_id"><span>*</span> <i class="fa-solid fa-venus-mars"></i>Sexo</label>
+
+                        <select name="sex" id="new_register_modal_sex_select_id"><option value="sex">Sexo</option>
+                            <option value="Masculino">Masculino</option><option value="Feminino">Feminino</option>
+                        </select>
+                    </div>
+
+                    <button type="submit"><i class="fa-solid fa-user-plus"></i>Adicionar Registro</button>
+
+                </form>
+            </main>
+
+        </div>
+    </div>
+
+    {{#if edit_register}}
+
+        <div class="register_modal_main_class register_modal" id="edit_register_modal">
+            <div class="register_modal__center">
+
+                <div class="register_modal__center-top">
+                    <span>Editar Registro</span><button><i class="register_modal__center-top__close_modal_button fa-solid fa-xmark"></i></button>
+                </div>
+
+                <main class="register_modal__center-main">
+                    <form action="/registers/update" method="post">
+
+                        {{#if errors}}
+                            {{#each errors}} 
+
+                                <div class="register_modal__center-main__form-failure">
+                                    <div class="register_modal__center-main__form-failure__center"><p>{{this}}</p></div>
+                                </div>
+
+                            {{/each}}
+                        {{/if}}
+
+
+                        <div class="register_modal__center-main__form-element">
+                            <label for="edit_register_modal_name_input_field_id"><span>*</span> <i class="fa-solid fa-user"></i>Nome</label>
+                            <input type="text" name="name" id="edit_register_modal_name_input_field_id" placeholder="Nome" value="{{name}}">
+                        </div>
+
+                        <div class="register_modal__center-main__form-element">
+                            <label for="edit_register_modal_email_input_field_id"><span>*</span> <i class="fa-solid fa-envelope"></i>E-mail</label>
+                            <input type="email" name="email" id="edit_register_modal_email_input_field_id" placeholder="E-mail" value="{{email}}">
+                        </div>
+
+                        <div class="register_modal__center-main__form-element__age register_modal__center-main__form-element">
+                            <label for="edit_register_modal_age_input_field_id"><span>*</span> <i class="fa-solid fa-1"></i>Idade</label>
+                            <input type="number" name="age" id="edit_register_modal_age_input_field_id" placeholder="Idade" min="1" max="120" value="{{age}}">
+                        </div>
+
+                        <div class="register_modal__center-main__form-element">
+                            <label for="sex_id"><span>*</span> <i class="fa-solid fa-venus-mars"></i>Sexo</label>
+
+                            <select name="sex" id="edit_register_modal_sex_select_id"></select>
+
+                            <script type="text/javascript">
+
+                                const sex = '{{sex}}';
+
+                                const f_option = sex == 'Masculino' ? 'Masculino' : 'Feminino';
+                                const s_option = sex == 'Masculino' ? 'Feminino' : 'Masculino';
+
+                                const sex_select = document.getElementById('edit_register_modal_sex_select_id');
+
+                                sex_select.options.add(new Option(f_option, f_option));
+                                sex_select.options.add(new Option(s_option, s_option));
+
+                            </script>
+                        </div>
+
+                        <button type="submit"><i class="fa-solid fa-save"></i>Salvar Alterações</button>
+
+                    </form>
+                </main>
+
+            </div>
+        </div>
+
+    {{/if}}
+
+    {{#if new_register_form_failure}} 
+    
+        <script type="text/javascript"> 
+        
+            const new_register_modal = document.getElementById('new_register_modal');
+
+            new_register_modal.style.display =  'flex';
+            new_register_modal.style.height  = '140vh';
+
+        </script> 
+        
+    {{/if}}
+    
+    {{#if edit_register_form_failure}} 
+    
+        <script type="text/javascript"> 
+        
+            const edit_register_modal = document.getElementById('edit_register_modal');
+
+            edit_register_modal.style.height  = '140vh';
+
+        </script> 
+        
+    {{/if}}
+
+    <script type="text/javascript" src="/javascript/main.js"></script>
+    
+</body>
+</html>
